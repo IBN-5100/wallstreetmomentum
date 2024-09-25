@@ -151,17 +151,18 @@ export default function Pricing({ user, products, subscription }: Props) {
                   className={cn(
                     'flex flex-col rounded-xl shadow-sm divide-y divide-zinc-600 bg-zinc-900',
                     {
-                      'border border-pink-600': product.name === "Hobbyist"
-                    },{
-                        'bg bg-pink-600' : product.name === subscription?.prices?.products?.name
+                      'border bg-pink-600': subscription
+                        ? product.name === subscription?.prices?.products?.name
+                        : product.name === "Freelancer",
+
+                        'border border-pink-600' : product.name === 'Professional'
                     },
-                    
                     'flex-1', // This makes the flex item grow to fill the space
                     'basis-1/4', // Assuming you want each card to take up roughly a third of the container's width
                     'max-w-xs' // Sets a maximum width to the cards to prevent them from getting too large
                   )}
                 >
-                  {/*badge */}
+                  {/* Add a badge */}
                   {product.name === 'Professional' && (
                     <div className="absolute bg-pink-600 text-white text-xs font-bold px-4 py-1 rounded-md">
                     Most Popular
