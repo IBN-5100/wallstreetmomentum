@@ -49,7 +49,7 @@ export default function Pricing({ user, products, subscription }: Props) {
   const handleStripeCheckout = async (price: Price) => {
     setPriceIdLoading(price.id);
 
-    if (!subscription) {
+    if (subscription) {
       return window.location.href = 'https://billing.stripe.com/p/login/test_14k0465OUgTR0sU8ww';
     }
 
