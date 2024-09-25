@@ -49,6 +49,10 @@ export default function Pricing({ user, products, subscription }: Props) {
   const handleStripeCheckout = async (price: Price) => {
     setPriceIdLoading(price.id);
 
+    if (!subscription) {
+      return window.location.href = 'https://billing.stripe.com/p/login/test_14k0465OUgTR0sU8ww';
+    }
+
     if (!user) {
       setPriceIdLoading(undefined);
       return router.push('/signin/signup');
@@ -99,11 +103,10 @@ export default function Pricing({ user, products, subscription }: Props) {
         <div className="max-w-6xl px-4 py-8 mx-auto sm:py-24 sm:px-6 lg:px-8">
           <div className="sm:flex sm:flex-col sm:align-center">
             <h1 className="text-4xl font-extrabold text-white sm:text-center sm:text-6xl">
-              Pricing Plans
+              Seize the Wall Street Momentum
             </h1>
             <p className="max-w-2xl m-auto mt-5 text-xl text-zinc-200 sm:text-center sm:text-2xl">
-              Start building for free, then add a site plan to go live. Account
-              plans unlock additional features.
+              Tried the demo of our bread and butter sentiment - momentum model and ready to upgrade your account?
             </p>
             <div className="relative self-center mt-6 bg-zinc-900 rounded-lg p-0.5 flex sm:mt-8 border border-zinc-800">
               {intervals.includes('month') && (
@@ -155,7 +158,7 @@ export default function Pricing({ user, products, subscription }: Props) {
                         ? product.name === subscription?.prices?.products?.name
                         : product.name === "Freelancer",
 
-                        'border border-pink-600' : product.name === 'Hobbyist'
+                        'border border-pink-600' : product.id === "prod_QuXZdfqr4KQCgG"
                     },
                     'flex-1', // This makes the flex item grow to fill the space
                     'basis-1/4', // Assuming you want each card to take up roughly a third of the container's width
@@ -163,8 +166,8 @@ export default function Pricing({ user, products, subscription }: Props) {
                   )}
                 >
                   {/* Add a badge */}
-                  {product.name === 'Professional' && (
-                    <div className="absolute bg-pink-600 text-white text-xs font-bold px-4 py-1 rounded-md">
+                  {product.id === 'prod_QuXZdfqr4KQCgG' && (
+                    <div className="absolute bg-pink-600 text-white text-xs font-bold px-4 py-1 rounded-lg">
                     Most Popular
                     </div>
                   )}
@@ -192,12 +195,7 @@ export default function Pricing({ user, products, subscription }: Props) {
                       className="block w-full py-2 mt-8 text-sm font-semibold text-center text-white rounded-md hover:bg-zinc-900">
                       Schedule Chat
                       </Button>
-                    ) : product.name === 'Basic' ? (
-                      <a href="https://www.youtube.com"
-                      className="block w-full py-2 mt-8 text-sm font-semibold text-center text-white rounded-md hover:bg-zinc-900">
-                      Basic
-                      </a>
-                    ) : (
+                    ): (
                       <Button
                       variant="slim"
                       type="button"
