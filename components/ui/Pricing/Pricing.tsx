@@ -151,7 +151,7 @@ export default function Pricing({ user, products, subscription }: Props) {
                   className={cn(
                     'flex flex-col rounded-xl shadow-sm divide-y divide-zinc-600 bg-zinc-900',
                     {
-                      'border bg-pink-500': subscription
+                      'border bg-pink-600': subscription
                         ? product.name === subscription?.prices?.products?.name
                         : product.name === 'dud',
 
