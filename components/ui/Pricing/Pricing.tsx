@@ -152,8 +152,8 @@ export default function Pricing({ user, products, subscription }: Props) {
                     'flex flex-col rounded-xl shadow-sm divide-y divide-zinc-600 bg-zinc-900',
                     {
                       'border bg-pink-500': subscription
-                        ? product.name === subscription?.prices?.products?.name
-                        : product.name === 'dud',
+                        ? product.name === 'dud'
+                        : product.name === subscription,
 
                         'border border-pink-600' : product.name === 'Professional'
                     },
