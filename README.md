@@ -1,3 +1,13 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/IBN-5100/discordassets/main/Untitled%20design.png">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/IBN-5100/discordassets/main/Untitled%20design.png">
+  <img alt="knife signature graphic tsukihime" src="https://raw.githubusercontent.com/IBN-5100/discordassets/main/Untitled%20design.png">
+</picture>
+
+
+#
+
+
 # Test WallStreetMoment API TEST
 
 The all-in-one starter kit for high-performance SaaS applications.

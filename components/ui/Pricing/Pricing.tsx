@@ -87,16 +87,7 @@ export default function Pricing({ user, products, subscription }: Props) {
         <div className="max-w-6xl px-4 py-8 mx-auto sm:py-24 sm:px-6 lg:px-8">
           <div className="sm:flex sm:flex-col sm:align-center"></div>
           <p className="text-4xl font-extrabold text-white sm:text-center sm:text-6xl">
-            No subscription pricing plans found. Create them in your{' '}
-            <a
-              className="text-pink-500 underline"
-              href="https://dashboard.stripe.com/products"
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              Stripe Dashboard
-            </a>
-            .
+            No pricing plans available at this time.
           </p>
         </div>
         <LogoCloud />
@@ -165,7 +156,7 @@ export default function Pricing({ user, products, subscription }: Props) {
                         : product.name === 'Freelancer'
                     },
                     'flex-1', // This makes the flex item grow to fill the space
-                    'basis-1/3', // Assuming you want each card to take up roughly a third of the container's width
+                    'basis-1/4', // Assuming you want each card to take up roughly a third of the container's width
                     'max-w-xs' // Sets a maximum width to the cards to prevent them from getting too large
                   )}
                 >
@@ -174,6 +165,8 @@ export default function Pricing({ user, products, subscription }: Props) {
                       {product.name}
                     </h2>
                     <p className="mt-4 text-zinc-300">{product.description}</p>
+                    {product.id === 'prod_Qui24vFsEPX6L8' ? (
+                        <p className="mt-8"><span className="text-5xl font-extrabold white">N/A</span></p>) : (
                     <p className="mt-8">
                       <span className="text-5xl font-extrabold white">
                         {priceString}
@@ -182,15 +175,295 @@ export default function Pricing({ user, products, subscription }: Props) {
                         /{billingInterval}
                       </span>
                     </p>
-                    <Button
+                        )}
+                    {product.id === 'prod_Qui24vFsEPX6L8' ? (
+                      <Button
+                      variant="slim"
+                      type="button" 
+                      onClick={() => {window.location.href = 'https://calendly.com/rdeng2020/coffee';}}
+                      className="block w-full py-2 mt-8 text-sm font-semibold text-center text-white rounded-md hover:bg-zinc-900">
+                      Schedule Chat
+                      </Button>
+                    ) : product.name === 'Basic' ? (
+                      <a href="https://www.youtube.com"
+                      className="block w-full py-2 mt-8 text-sm font-semibold text-center text-white rounded-md hover:bg-zinc-900">
+                      Basic
+                      </a>
+                    ) : (
+                      <Button
                       variant="slim"
                       type="button"
                       loading={priceIdLoading === price.id}
                       onClick={() => handleStripeCheckout(price)}
-                      className="block w-full py-2 mt-8 text-sm font-semibold text-center text-white rounded-md hover:bg-zinc-900"
-                    >
+                      className="block w-full py-2 mt-8 text-sm font-semibold text-center text-white rounded-md hover:bg-zinc-900">
                       {subscription ? 'Manage' : 'Subscribe'}
-                    </Button>
+                      </Button>
+                    )}
+
+
+        {product.id == "prod_QuXU28Jh8BxpP9" && (
+          <div className="mt-6">
+            <ul className="mt-4 space-y-2 text-sm text-zinc-200">
+              <li className="flex items-start">
+                <svg
+                  className="w-5 h-5 text-green-500 mr-2 flex-shrink-0"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M16.707 5.293a1 1 0 00-1.414 0L9 11.586 6.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span>For the price of a coffee!</span>
+              </li>
+              <li className="flex items-start">
+                <svg
+                  className="w-5 h-5 text-green-500 mr-2 flex-shrink-0"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M16.707 5.293a1 1 0 00-1.414 0L9 11.586 6.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span>Flagship sentiment-momentum model</span>
+              </li>
+              <li className="flex items-start">
+                <svg
+                  className="w-5 h-5 text-green-500 mr-2 flex-shrink-0"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M16.707 5.293a1 1 0 00-1.414 0L9 11.586 6.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span>Hourly forecasts with no delay</span>
+              </li>
+              <li className="flex items-start">
+                <svg
+                  className="w-5 h-5 text-green-500 mr-2 flex-shrink-0"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M16.707 5.293a1 1 0 00-1.414 0L9 11.586 6.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span>Up to one week lookback</span>
+              </li>
+              <li className="flex items-start">
+                <svg
+                  className="w-5 h-5 text-green-500 mr-2 flex-shrink-0"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M16.707 5.293a1 1 0 00-1.414 0L9 11.586 6.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span>Additional basic indicators</span>
+              </li>
+              <li className="flex items-start">
+                <svg
+                  className="w-5 h-5 text-green-500 mr-2 flex-shrink-0"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M16.707 5.293a1 1 0 00-1.414 0L9 11.586 6.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span>Tickers modeled: SPY (S&P 500)</span>
+              </li>
+            </ul>
+          </div>
+          )}
+
+
+{product.id === 'prod_QuXZdfqr4KQCgG' && (
+  <div className="mt-6">
+    <ul className="mt-4 space-y-2 text-sm text-zinc-200">
+      <li className="flex items-start">
+        <svg
+          className="w-5 h-5 text-green-500 mr-2 flex-shrink-0"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fillRule="evenodd"
+            d="M16.707 5.293a1 1 0 00-1.414 0L9 11.586 6.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z"
+            clipRule="evenodd"
+          />
+        </svg>
+        <span>For the price of a coffee in NY!</span>
+      </li>
+      <li className="flex items-start">
+        <svg
+          className="w-5 h-5 text-green-500 mr-2 flex-shrink-0"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fillRule="evenodd"
+            d="M16.707 5.293a1 1 0 00-1.414 0L9 11.586 6.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z"
+            clipRule="evenodd"
+          />
+        </svg>
+        <span>Everything in hobby</span>
+      </li>
+      <li className="flex items-start">
+        <svg
+          className="w-5 h-5 text-green-500 mr-2 flex-shrink-0"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fillRule="evenodd"
+            d="M16.707 5.293a1 1 0 00-1.414 0L9 11.586 6.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z"
+            clipRule="evenodd"
+          />
+        </svg>
+        <span>Advanced data at all time scales</span>
+      </li>
+      <li className="flex items-start">
+        <svg
+          className="w-5 h-5 text-green-500 mr-2 flex-shrink-0"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fillRule="evenodd"
+            d="M16.707 5.293a1 1 0 00-1.414 0L9 11.586 6.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z"
+            clipRule="evenodd"
+          />
+        </svg>
+        <span>All indicators and algorithms</span>
+      </li>
+      <li className="flex items-start">
+        <svg
+          className="w-5 h-5 text-green-500 mr-2 flex-shrink-0"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fillRule="evenodd"
+            d="M16.707 5.293a1 1 0 00-1.414 0L9 11.586 6.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z"
+            clipRule="evenodd"
+          />
+        </svg>
+        <span>All modeled tickers, including MAG7: NVDA, TSLA, META, GOOG, AMZN, APPL, MSFT</span>
+      </li>
+    </ul>
+  </div>
+)}
+
+{product.name === 'Boutique' && (
+  <div className="mt-6">
+    <ul className="mt-4 space-y-2 text-sm text-zinc-200">
+      <li className="flex items-start">
+        <svg
+          className="w-5 h-5 text-green-500 mr-2 flex-shrink-0"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fillRule="evenodd"
+            d="M16.707 5.293a1 1 0 00-1.414 0L9 11.586 6.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z"
+            clipRule="evenodd"
+          />
+        </svg>
+        <span>Priced by seat and features</span>
+      </li>
+      <li className="flex items-start">
+        <svg
+          className="w-5 h-5 text-green-500 mr-2 flex-shrink-0"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fillRule="evenodd"
+            d="M16.707 5.293a1 1 0 00-1.414 0L9 11.586 6.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z"
+            clipRule="evenodd"
+          />
+        </svg>
+        <span>Excellent for asset management teams</span>
+      </li>
+      <li className="flex items-start">
+        <svg
+          className="w-5 h-5 text-green-500 mr-2 flex-shrink-0"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fillRule="evenodd"
+            d="M16.707 5.293a1 1 0 00-1.414 0L9 11.586 6.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z"
+            clipRule="evenodd"
+          />
+        </svg>
+        <span>Advanced data and analytics</span>
+      </li>
+      <li className="flex items-start">
+        <svg
+          className="w-5 h-5 text-green-500 mr-2 flex-shrink-0"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fillRule="evenodd"
+            d="M16.707 5.293a1 1 0 00-1.414 0L9 11.586 6.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z"
+            clipRule="evenodd"
+          />
+        </svg>
+        <span>In-house algorithms and dashboards</span>
+      </li>
+      <li className="flex items-start">
+        <svg
+          className="w-5 h-5 text-green-500 mr-2 flex-shrink-0"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fillRule="evenodd"
+            d="M16.707 5.293a1 1 0 00-1.414 0L9 11.586 6.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z"
+            clipRule="evenodd"
+          />
+        </svg>
+        <span>Academic and professional documentation</span>
+      </li>
+    </ul>
+  </div>
+)}
+
+
                   </div>
                 </div>
               );
