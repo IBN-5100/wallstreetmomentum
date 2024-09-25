@@ -151,11 +151,10 @@ export default function Pricing({ user, products, subscription }: Props) {
                   className={cn(
                     'flex flex-col rounded-xl shadow-sm divide-y divide-zinc-600 bg-zinc-900',
                     {
-                      'bg bg-pink-600': subscription
-                        ? product.name === subscription?.prices?.products?.name
-                        : product.name === 'dud',
-
                         'border border-pink-600' : product.name === 'Hobbyist'
+                    },
+                    {
+                      'bg bg-pink-600' : product.name === subscription?.prices?.products?.name
                     },
                     'flex-1', // This makes the flex item grow to fill the space
                     'basis-1/4', // Assuming you want each card to take up roughly a third of the container's width
