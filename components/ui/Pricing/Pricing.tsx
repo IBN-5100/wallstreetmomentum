@@ -469,13 +469,18 @@ export default function Pricing({ user, products, subscription }: Props) {
     </ul>
   </div>
 )}
-
-
                   </div>
                 </div>
               );
+              
             })}
+            
+
           </div>
+          <br></br>
+          <span className="text-sm text-gray-500 text-center block"> No product, tool, or component offered here is intended to be financial advice. Products and tools are provided for data and entertainment or academic purposes.</span>
+          <span className="text-sm text-gray-500 text-center block">By purchasing a product or subscription you agree to our <a href="https://docs.google.com/document/d/1WWtiu2ed1N24bV0nx6dxMhF3JYNH9NagZ7qX8QdU0Oc/edit?usp=sharing" className="underline"> Terms of Service</a> and <a href="https://docs.google.com/document/d/1DQpDXYUgUgZgyRg1v4KkruN4TZgUnj-9OyN2oFVsohE/edit?usp=sharing" className="underline"> Privacy Policy</a>. This is not financial advice, consult a professional before investing.
+</span>
           <LogoCloud />
         </div>
       </section>

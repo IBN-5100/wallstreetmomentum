@@ -1,24 +1,24 @@
-import Pricing from '@/components/ui/Pricing/Pricing';
+import Dashboard from '@/components/ui/Dashboard/Dashboard';
+import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
 import {
-  getProducts,
+  getUserDetails,
   getSubscription,
   getUser
 } from '@/utils/supabase/queries';
 
-export default async function PricingPage() {
+export default async function Account() {
   const supabase = createClient();
-  const [user, products, subscription] = await Promise.all([
+  const [user, userDetails, subscription] = await Promise.all([
     getUser(supabase),
-    getProducts(supabase),
+    getUserDetails(supabase),
     getSubscription(supabase)
   ]);
 
   return (
-    <Pricing
+    <Dashboard
       user={user}
-      products={products ?? []}
-      subscription={subscription}
-    />
+      userName={userDetails?.full_name ?? ''}
+      subscription={subscription}/>
   );
 }
