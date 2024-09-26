@@ -102,7 +102,7 @@ export default async function SignIn({
             allowOauth && (
               <>
                 <Separator text="Third-party sign-in" />
-                <OauthSignIn />
+                
               </>
             )}
         </Card>
