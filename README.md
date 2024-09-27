@@ -4,20 +4,15 @@
   <img alt="knife signature graphic tsukihime" src="https://raw.githubusercontent.com/IBN-5100/discordassets/main/Untitled%20design.png">
 </picture>
 
+<br>
 
-#
+# Wall Street Moment Public Website Repo
 
+This is the public front facing code for wallstreetmoment.com and other quantitative tools. This includes (some) models and algorithms and the write up for our flagship CNN-LSTM **Wall Street Momentum** model.
 
-# Test WallStreetMoment API TEST
+## Wall Street Momentum
 
-The all-in-one starter kit for high-performance SaaS applications.
-
-## Features
-
-- Secure user management and authentication with [Supabase](https://supabase.io/docs/guides/auth)
-- Powerful data access & management tooling on top of PostgreSQL with [Supabase](https://supabase.io/docs/guides/database)
-- Integration with [Stripe Checkout](https://stripe.com/docs/payments/checkout) and the [Stripe customer portal](https://stripe.com/docs/billing/subscriptions/customer-portal)
-- Automatic syncing of pricing plans and subscription statuses via [Stripe webhooks](https://stripe.com/docs/webhooks)
+Our primary theory is that sentiment and momentum move markets.
 
 ## Demo
 
