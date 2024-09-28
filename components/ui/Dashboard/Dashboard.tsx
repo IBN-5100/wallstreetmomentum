@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Line } from 'react-chartjs-2';
-import Select from 'react-select'; // Import react-select
+import Select from 'react-select';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -20,13 +20,12 @@ import { utcToZonedTime, format, zonedTimeToUtc } from 'date-fns-tz';
 import LogoCloud from '@/components/ui/LogoCloud';
 import { TailSpin } from 'react-loader-spinner';
 
-// Register necessary chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, TimeScale);
 
 export default function DashboardPage({ user, userName, subscription }: any) {
   const [selectedTicker, setSelectedTicker] = useState<string>('SPY');
   const [todayChartData, setTodayChartData] = useState<any>(null);
-  const [yesterdayChartData, setYesterdayChartData] = useState<any>(null);
+  const [previousTradingDayData, setPreviousTradingDayData] = useState<any>(null); // New state for previous trading day's data
   const [loading, setLoading] = useState(true);
   const [countdown, setCountdown] = useState<string>(''); 
   const [isMarketOpen, setIsMarketOpen] = useState<boolean>(false);
@@ -34,68 +33,103 @@ export default function DashboardPage({ user, userName, subscription }: any) {
   const newYorkTimeZone = 'America/New_York';
 
   useEffect(() => {
-    const fetchGoogleSheetData = async () => {
-      try {
-        const historicalSpreadsheetId = process.env.NEXT_PUBLIC_HIST_SHEET; 
-        const predictedSpreadsheetId = process.env.NEXT_PUBLIC_PRED_SHEET;
+    const checkTradingDayAndFetchData = () => {
+      const today = new Date();
+      const dayOfWeek = today.getDay();
 
-        const apiKey = process.env.NEXT_PUBLIC_GOOGLESHEET_API_KEY;
-
-        if (!apiKey) {
-          throw new Error('Google Sheets API key is missing in environment variables');
-        }
-
-        const historicalRes = await fetch(
-          `https://sheets.googleapis.com/v4/spreadsheets/${historicalSpreadsheetId}/values/${selectedTicker}!A:G?key=${apiKey}`
-        );
-        if (!historicalRes.ok) {
-          throw new Error(`Failed to fetch historical data: ${historicalRes.statusText}`);
-        }
-        const historicalData = await historicalRes.json();
-
-        const predictedRes = await fetch(
-          `https://sheets.googleapis.com/v4/spreadsheets/${predictedSpreadsheetId}/values/${selectedTicker}!A:D?key=${apiKey}`
-        );
-        if (!predictedRes.ok) {
-          throw new Error(`Failed to fetch predicted data: ${predictedRes.statusText}`);
-        }
-        const predictedData = await predictedRes.json();
-
-        const { todayData, yesterdayData } = stitchData(historicalData.values, predictedData.values);
-
-        setTodayChartData(todayData);
-        setYesterdayChartData(yesterdayData);
-      } catch (error: any) {
-        console.error('Error occurred:', error.message);
-      } finally {
-        setLoading(false);
+      if (dayOfWeek === 0 || dayOfWeek === 6) { // Weekend: 0 = Sunday, 6 = Saturday
+        console.log('Today is a weekend, fetching previous trading day data.');
+        const lastTradingDay = getPreviousTradingDay();
+        fetchGoogleSheetData(lastTradingDay); // Fetch data for the previous trading day
+        calculateCountdown(getNextMonday());
+      } else {
+        fetchGoogleSheetData(today); // Fetch data for today if it's a trading day
       }
     };
 
     checkMarketStatus();
-    fetchGoogleSheetData();
+    checkTradingDayAndFetchData();
   }, [selectedTicker]);
 
+  // Function to fetch data from Google Sheets for a specific day
+  const fetchGoogleSheetData = async (date: Date) => {
+    try {
+      const historicalSpreadsheetId = process.env.NEXT_PUBLIC_HIST_SHEET; 
+      const predictedSpreadsheetId = process.env.NEXT_PUBLIC_PRED_SHEET;
+
+      const apiKey = process.env.NEXT_PUBLIC_GOOGLESHEET_API_KEY;
+
+      const historicalRes = await fetch(
+        `https://sheets.googleapis.com/v4/spreadsheets/${historicalSpreadsheetId}/values/${selectedTicker}!A:G?key=${apiKey}`
+      );
+      if (!historicalRes.ok) {
+        throw new Error(`Failed to fetch historical data: ${historicalRes.statusText}`);
+      }
+      const historicalData = await historicalRes.json();
+
+      const predictedRes = await fetch(
+        `https://sheets.googleapis.com/v4/spreadsheets/${predictedSpreadsheetId}/values/${selectedTicker}!A:D?key=${apiKey}`
+      );
+      if (!predictedRes.ok) {
+        throw new Error(`Failed to fetch predicted data: ${predictedRes.statusText}`);
+      }
+      const predictedData = await predictedRes.json();
+
+      const { todayData, previousDayData } = stitchData(historicalData.values, predictedData.values, date);
+      setTodayChartData(todayData);
+      setPreviousTradingDayData(previousDayData); // Update previous trading day data state
+    } catch (error: any) {
+      console.error('Error occurred:', error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Get the previous trading day
+  const getPreviousTradingDay = () => {
+    let today = new Date();
+    let dayOfWeek = today.getDay();
+
+    // If it's a weekend, move to Friday
+    if (dayOfWeek === 0) { // Sunday
+      today.setDate(today.getDate() - 2); // Move to Friday
+    } else if (dayOfWeek === 6) { // Saturday
+      today.setDate(today.getDate() - 1); // Move to Friday
+    }
+    
+    // Further logic for holidays could be added here if required
+    return today;
+  };
+
+  // Get the next Monday date if today is a weekend
+  const getNextMonday = () => {
+    const today = utcToZonedTime(new Date(), newYorkTimeZone);
+    const dayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
+    const daysUntilMonday = dayOfWeek === 0 ? 1 : 8 - dayOfWeek; // Calculate days to Monday
+    const nextMonday = new Date(today);
+    nextMonday.setDate(today.getDate() + daysUntilMonday);
+    nextMonday.setHours(9, 30, 0, 0); // Set next Monday to 9:30 AM Eastern Time
+    return nextMonday;
+  };
+
   const calculateCountdown = (targetTime: Date) => {
-    const now = new Date();
+    const now = utcToZonedTime(new Date(), newYorkTimeZone);
     const timeDifference = targetTime.getTime() - now.getTime();
+    const days = Math.floor((timeDifference / (1000 * 60 * 60 * 24)));
     const hours = Math.floor((timeDifference / (1000 * 60 * 60)) % 24);
     const minutes = Math.floor((timeDifference / (1000 * 60)) % 60);
     const seconds = Math.floor((timeDifference / 1000) % 60);
 
-    setCountdown(`${hours}h ${minutes}m ${seconds}s`);
-
+    setCountdown(`${days}d ${hours}h ${minutes}m ${seconds}s`);
     setTimeout(() => calculateCountdown(targetTime), 1000);
   };
 
   const checkMarketStatus = () => {
     const now = new Date();
 
-    const marketOpen = utcToZonedTime(new Date(), newYorkTimeZone);
+    const marketOpen = getNextMarketOpen();
     const marketClose = utcToZonedTime(new Date(), newYorkTimeZone);
-
-    marketOpen.setHours(9, 30, 0, 0); 
-    marketClose.setHours(16, 0, 0, 0); 
+    marketClose.setHours(16, 0, 0, 0); // 4:00 PM Eastern Time
 
     const marketOpenUtc = zonedTimeToUtc(marketOpen, newYorkTimeZone);
     const marketCloseUtc = zonedTimeToUtc(marketClose, newYorkTimeZone);
@@ -114,21 +148,53 @@ export default function DashboardPage({ user, userName, subscription }: any) {
     }
   };
 
-  const stitchData = (historicalData: any[], predictedData: any[]) => {
+  const getNextMarketOpen = (): Date => {
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+
+    if (dayOfWeek === 6 || dayOfWeek === 0) { // Saturday or Sunday
+      const nextMonday = new Date(today);
+      const daysUntilMonday = dayOfWeek === 6 ? 2 : 1; // From Saturday, 2 days, from Sunday, 1 day
+      nextMonday.setDate(today.getDate() + daysUntilMonday);
+      nextMonday.setHours(9, 30, 0, 0); // 9:30 AM Eastern Time
+      return utcToZonedTime(nextMonday, newYorkTimeZone);
+    }
+
+    const marketOpenToday = new Date(today);
+    marketOpenToday.setHours(9, 30, 0, 0); // 9:30 AM Eastern Time
+    return today.getTime() < marketOpenToday.getTime()
+      ? utcToZonedTime(marketOpenToday, newYorkTimeZone)
+      : getNextTradingDay();
+  };
+
+  const getNextTradingDay = (): Date => {
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+
+    // Move to the next trading day
+    if (dayOfWeek === 5) { // Friday, move to next Monday
+      today.setDate(today.getDate() + 3);
+    } else {
+      today.setDate(today.getDate() + 1); // Any other weekday, move to next day
+    }
+    today.setHours(9, 30, 0, 0); // Set the next trading day to 9:30 AM Eastern Time
+    return utcToZonedTime(today, newYorkTimeZone);
+  };
+
+  // Updated function to handle stitching of today's and previous trading day's data
+  const stitchData = (historicalData: any[], predictedData: any[], date: Date) => {
     const todayData: any[] = [];
-    const yesterdayData: any[] = [];
+    const previousDayData: any[] = [];
     const predictedValues = predictedData.slice(1); // Skip header
   
     const today = new Date();
-    const yesterday = new Date();
-    yesterday.setDate(today.getDate() - 1);
+    const targetDay = new Date(date);
   
     for (let i = 0; i < historicalData.length; i++) {
       const [timestamp, price] = historicalData[i];
   
       let dateInET;
   
-      // Parse the timestamp and convert it to Eastern Time (New York)
       if (isValid(parseISO(timestamp))) {
         dateInET = utcToZonedTime(new Date(timestamp), newYorkTimeZone);
       } else {
@@ -146,53 +212,48 @@ export default function DashboardPage({ user, userName, subscription }: any) {
         }
       }
   
-      // Only include data within trading hours (9:30 AM to 4:00 PM Eastern Time)
       const hour = dateInET.getHours();
       const minutes = dateInET.getMinutes();
-      if (hour < 8 || (hour === 8 && minutes < 30) || hour >= 16) {
-        continue; // Skip data outside trading hours
+      if (hour < 8 || (hour === 8 && minutes < 30) || hour >= 16) { // - 1 hour for prediction algo
+        continue;
       }
   
       const currentPrice = parseFloat(price);
       if (isNaN(currentPrice)) {
-        continue; // Skip invalid price data
+        continue;
       }
   
-      // Get future price (i + 12 index)
-      const futureHourIndex = i + 12; // Shift by 12 intervals (5-minute intervals = 1 hour)
+      const futureHourIndex = i + 12;
       const futurePrice = futureHourIndex < historicalData.length
         ? parseFloat(historicalData[futureHourIndex][1])
-        : NaN; // Check if future price exists
+        : NaN;
   
-      // Get prediction values for the current hour
       if (predictedValues[Math.floor(i / 12)]) {
         const [_, predictedHigh, predictedLow] = predictedValues[Math.floor(i / 12)];
-  
-        // Get the time for the current hour, then add 1 hour for the predicted timestamp
         let currentDateInET = utcToZonedTime(new Date(historicalData[i][0]), newYorkTimeZone);
-        let predictionTime = new Date(currentDateInET.getTime() + 60 * 60 * 1000); // Add 1 hour
+        let predictionTime = new Date(currentDateInET.getTime() + 60 * 60 * 1000);
   
         const formattedPredictionTime = format(predictionTime, 'yyyy-MM-dd HH:mm:ss', {});
   
         const stitchedRow = {
-          timestamp: formattedPredictionTime, // Future timestamp (+1 hour)
-          price: futurePrice, // Future price for prediction
-          predictedHigh: parseFloat(predictedHigh) * currentPrice, // Apply prediction for high using future price
-          predictedLow: parseFloat(predictedLow) * currentPrice,   // Apply prediction for low using future price
+          timestamp: formattedPredictionTime,
+          price: futurePrice,
+          predictedHigh: parseFloat(predictedHigh) * currentPrice,
+          predictedLow: parseFloat(predictedLow) * currentPrice,
         };
   
-        // Add to today's or yesterday's data
+        // Compare the date in Eastern Time with the targetDay to determine which dataset to update
         if (dateInET.getDate() === today.getDate()) {
           todayData.push(stitchedRow);
-        } else if (dateInET.getDate() === yesterday.getDate()) {
-          yesterdayData.push(stitchedRow);
+        } else if (dateInET.getDate() === targetDay.getDate()) {
+          previousDayData.push(stitchedRow);
         }
       }
     }
   
-    return { todayData, yesterdayData };
-  };  
-  
+    return { todayData, previousDayData };
+  };
+
   const options = {
     responsive: true,
     plugins: {
@@ -228,12 +289,29 @@ export default function DashboardPage({ user, userName, subscription }: any) {
     },
   };
 
-  const tickerOptions = [
+  const hobbyistTickerOptions = [
     { value: 'SPY', label: 'SPY' },
+    { value: 'MAGS', label: 'MAGS' },
+    { value: 'AAPL', label: 'AAPL' },
+    { value: 'GOOG', label: 'GOOG' },
+
+  ];
+  
+  
+  const professionalTickerOptions = [
+    { value: 'SPY', label: 'SPY' },
+    { value: 'MAGS', label: 'MAGS' },
+    { value: 'AAPL', label: 'AAPL' },
+    { value: 'AMZN', label: 'AMZN' },
     { value: 'GOOG', label: 'GOOG' },
     { value: 'NVDA', label: 'NVDA' },
     { value: 'RIVN', label: 'RIVN' },
   ];
+
+  const tickerOptions = subscription?.prices?.products?.name === 'Professional'
+  ? professionalTickerOptions
+  : hobbyistTickerOptions;
+
 
   return (
     <>
@@ -321,9 +399,8 @@ export default function DashboardPage({ user, userName, subscription }: any) {
           <>
             {isMarketOpen ? (
               <>
-                {/* Plot today's trading data */}
                 <div className="w-full max-w-4xl p-4 bg-black rounded shadow">
-                  <h2 className="text-center text-white text-2xl mb-4">Today's Trading Data</h2>
+                  <h2 className="text-center text-white text-2xl mb-4">Today's Trading Data ({selectedTicker})</h2>
                   {todayChartData ? (
                     <Line
                       data={{
@@ -331,21 +408,21 @@ export default function DashboardPage({ user, userName, subscription }: any) {
                         datasets: [
                           {
                             label: 'Price (Actual)',
-                            data: todayChartData.map((row: any) => row.price), // No need for condition, NaN will be handled
-                            borderColor: 'rgba(255, 255, 255, 1)',  // White for actual price
-                            backgroundColor: 'rgba(0, 123, 255, 0.4)', // Blue shadow
+                            data: todayChartData.map((row: any) => row.price),
+                            borderColor: 'rgba(255, 255, 255, 1)',
+                            backgroundColor: 'rgba(0, 123, 255, 0.4)', 
                           },
                           {
                             label: 'High (Predicted)',
-                            data: todayChartData.map((row: any) => row.predictedHigh), // Predicted high for next hour
-                            borderColor: 'rgba(0, 255, 200, 1)',  // Cyan-Green for predicted high
-                            backgroundColor: 'rgba(0, 255, 150, 0.3)', // Cyan-Green shadow
+                            data: todayChartData.map((row: any) => row.predictedHigh),
+                            borderColor: 'rgba(0, 255, 200, 1)', 
+                            backgroundColor: 'rgba(0, 255, 150, 0.3)', 
                           },
                           {
                             label: 'Low (Predicted)',
-                            data: todayChartData.map((row: any) => row.predictedLow), // Predicted low for next hour
-                            borderColor: 'rgba(255, 99, 132, 1)',  // Pink-Red for predicted low
-                            backgroundColor: 'rgba(255, 99, 132, 0.3)', // Pink-Red shadow
+                            data: todayChartData.map((row: any) => row.predictedLow),
+                            borderColor: 'rgba(255, 99, 132, 1)',  
+                            backgroundColor: 'rgba(255, 99, 132, 0.3)', 
                           },
                         ],
                       }}
@@ -362,38 +439,37 @@ export default function DashboardPage({ user, userName, subscription }: any) {
               </div>
             )}
 
-            {/* Plot yesterday's trading data */}
             <div className="w-full max-w-4xl p-4 bg-black rounded shadow">
-              <h2 className="text-center text-white text-2xl mb-4">Yesterday's Trading Data</h2>
-              {yesterdayChartData ? (
+              <h2 className="text-center text-white text-2xl mb-4">Previous Trading Day's Data ({selectedTicker})</h2>
+              {previousTradingDayData ? (
                 <Line
                   data={{
-                    labels: yesterdayChartData.map((row: any) => new Date(row.timestamp)),
+                    labels: previousTradingDayData.map((row: any) => new Date(row.timestamp)),
                     datasets: [
                       {
                         label: 'Price (Actual)',
-                        data: yesterdayChartData.map((row: any) => row.price), // Use NaN for missing prices
-                        borderColor: 'rgba(255, 255, 255, 1)', // White for actual price
-                        backgroundColor: 'rgba(0, 123, 255, 0.4)', // Blue shadow
+                        data: previousTradingDayData.map((row: any) => row.price),
+                        borderColor: 'rgba(255, 255, 255, 1)', 
+                        backgroundColor: 'rgba(0, 123, 255, 0.4)', 
                       },
                       {
                         label: 'High (Predicted)',
-                        data: yesterdayChartData.map((row: any) => row.predictedHigh), // Predicted high for next hour
-                        borderColor: 'rgba(0, 255, 200, 1)', // Cyan-Green for predicted high
-                        backgroundColor: 'rgba(0, 255, 150, 0.3)', // Cyan-Green shadow
+                        data: previousTradingDayData.map((row: any) => row.predictedHigh),
+                        borderColor: 'rgba(0, 255, 200, 1)', 
+                        backgroundColor: 'rgba(0, 255, 150, 0.3)', 
                       },
                       {
                         label: 'Low (Predicted)',
-                        data: yesterdayChartData.map((row: any) => row.predictedLow), // Predicted low for next hour
-                        borderColor: 'rgba(255, 99, 132, 1)', // Pink-Red for predicted low
-                        backgroundColor: 'rgba(255, 99, 132, 0.3)', // Pink-Red shadow
+                        data: previousTradingDayData.map((row: any) => row.predictedLow),
+                        borderColor: 'rgba(255, 99, 132, 1)',  
+                        backgroundColor: 'rgba(255, 99, 132, 0.3)', 
                       },
                     ],
                   }}
                   options={options}
                 />
               ) : (
-                <div className="text-white text-center">No data available for yesterday.</div>
+                <div className="text-white text-center">No data available for the previous trading day.</div>
               )}
             </div>
 
