@@ -16,7 +16,6 @@ Our primary theory is that sentiment and momentum move markets.
 
 ## Demo
 
-- https://subscription-payments.vercel.app/
 
 [![Screenshot of demo](./public/demo.png)](https://subscription-payments.vercel.app/)
 
