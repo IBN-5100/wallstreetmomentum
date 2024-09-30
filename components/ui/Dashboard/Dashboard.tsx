@@ -23,6 +23,7 @@ import { TailSpin } from 'react-loader-spinner';
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, TimeScale);
 
 export default function DashboardPage({ user, userName, subscription }: any) {
+  const [graphHeight, setGraphHeight] = useState<string>('50vh');
   const [selectedTicker, setSelectedTicker] = useState<string>('SPY');
   const [todayChartData, setTodayChartData] = useState<any>(null);
   const [previousTradingDayData, setPreviousTradingDayData] = useState<any>(null); // New state for previous trading day's data
@@ -31,6 +32,34 @@ export default function DashboardPage({ user, userName, subscription }: any) {
   const [isMarketOpen, setIsMarketOpen] = useState<boolean>(false);
   const [isMarketClose, setIsMarketClose] = useState<boolean>(false);
   const newYorkTimeZone = 'America/New_York';
+
+  useEffect(() => {
+    const updateGraphHeight = () => {
+      const windowHeight = window.innerHeight;
+      const windowWidth = window.innerWidth;
+      const orientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
+      
+      if (windowWidth < 768) {
+        setGraphHeight(`${windowHeight * 0.40}px`); // 40% of screen height for mobile
+      } else if (orientation === 'landscape') {
+        setGraphHeight(`${windowHeight * 0.2}px`); // 25% of screen height in landscape
+      } else {
+        setGraphHeight(`${windowHeight * 0.4}px`); // 40% of screen height in portrait
+      }
+      
+    };
+
+    // Add event listeners for resizing and orientation change
+    window.addEventListener('orientationchange', updateGraphHeight);
+
+    // Initial update
+    updateGraphHeight();
+
+    return () => {
+      // Cleanup event listeners when the component is unmounted
+      window.removeEventListener('orientationchange', updateGraphHeight);
+    };
+  }, []);
 
   useEffect(() => {
     const checkTradingDayAndFetchData = () => {
@@ -289,12 +318,13 @@ export default function DashboardPage({ user, userName, subscription }: any) {
     },
   };
 
+  const BasicTickerOptions = [
+    { value: 'SPY', label: 'SPY' },
+  ];
+
   const hobbyistTickerOptions = [
     { value: 'SPY', label: 'SPY' },
-    { value: 'MAGS', label: 'MAGS' },
     { value: 'AAPL', label: 'AAPL' },
-    { value: 'GOOG', label: 'GOOG' },
-
   ];
   
   
@@ -324,8 +354,7 @@ export default function DashboardPage({ user, userName, subscription }: any) {
                 Welcome Back, {userName}
               </h1>
               <p className="max-w-2xl m-auto mt-5 text-xl text-zinc-200 sm:text-center sm:text-xl">
-                You'll never miss another <span className="text-pink-600">Wall Street Moment</span> with our AI flagship model, 
-                (CNN-LSTM with GPT) sentiment - momentum forecaster: <br></br> <span className="text-pink-600">Wall Street Momentum</span>
+                You are currently accessing our latest sentiment - momentum forecaster: <br></br> <span className="text-pink-600">Wall Street Momentum  </span>
               </p>
               <p className="max-w-2xl m-auto mt-5 text-xl text-zinc-200 sm:text-center sm:text-2xl">
                 Thanks for being a {subscription?.prices?.products?.name}!
@@ -365,10 +394,10 @@ export default function DashboardPage({ user, userName, subscription }: any) {
       {/* React-Select Dropdown for ticker */}
       <div className="flex justify-center mb-8">
         <Select
-          options={subscription ? tickerOptions : tickerOptions.slice(0, 1)}
+          options={subscription ? tickerOptions : BasicTickerOptions}
           value={tickerOptions.find(option => option.value === selectedTicker)}
           onChange={(option) => setSelectedTicker(option?.value ?? 'SPY')}
-          isDisabled={!subscription}
+          //isDisabled={!subscription}
           className="w-64 text-black"
           theme={(theme) => ({
             ...theme,
@@ -399,7 +428,9 @@ export default function DashboardPage({ user, userName, subscription }: any) {
           <>
             {isMarketOpen ? (
               <>
-                <div className="w-full max-w-4xl p-4 bg-black rounded shadow">
+                <div
+                  className={`w-full max-w-4xl p-4 bg-black rounded shadow`}
+                >
                   <h2 className="text-center text-white text-2xl mb-4">Today's Trading Data ({selectedTicker})</h2>
                   {todayChartData ? (
                     <Line
@@ -427,6 +458,7 @@ export default function DashboardPage({ user, userName, subscription }: any) {
                         ],
                       }}
                       options={options}
+                      height={graphHeight} // Dynamic height applied here
                     />
                   ) : (
                     <div className="text-white text-center">No data available for today.</div>
@@ -439,7 +471,9 @@ export default function DashboardPage({ user, userName, subscription }: any) {
               </div>
             )}
 
-            <div className="w-full max-w-4xl p-4 bg-black rounded shadow">
+            <div
+              className={`w-full max-w-4xl p-4 bg-black rounded shadow`}
+            >
               <h2 className="text-center text-white text-2xl mb-4">Previous Trading Day's Data ({selectedTicker})</h2>
               {previousTradingDayData ? (
                 <Line
@@ -467,6 +501,7 @@ export default function DashboardPage({ user, userName, subscription }: any) {
                     ],
                   }}
                   options={options}
+                  height={graphHeight}
                 />
               ) : (
                 <div className="text-white text-center">No data available for the previous trading day.</div>
