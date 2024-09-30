@@ -477,7 +477,7 @@ export default function DashboardPage({ user, userName, subscription }: any) {
         <Select
           options={subscription ? tickerOptions : BasicTickerOptions}
           value={tickerOptions.find(option => option.value === selectedTicker)}
-          onChange={(option) => setSelectedTicker(option?.value ?? 'SPY')}
+          onChange={(option: any) => setSelectedTicker(option?.value ?? 'SPY')}
           //isDisabled={!subscription}
           className="w-64 text-black"
           theme={(theme) => ({
