@@ -299,7 +299,7 @@ export default function Pricing({ user, products, subscription }: Props) {
                     clipRule="evenodd"
                   />
                 </svg>
-                <span>Tickers modeled: SPY (S&P 500)</span>
+                <span>Essential Tickers modeled: AAPL, SPY (S&P 500) </span>
               </li>
             </ul>
           </div>
@@ -382,7 +382,7 @@ export default function Pricing({ user, products, subscription }: Props) {
             clipRule="evenodd"
           />
         </svg>
-        <span>All modeled tickers, including MAG7: NVDA, TSLA, META, GOOG, AMZN, APPL, MSFT</span>
+        <span>All modeled tickers, including MAG7: NVDA, TSLA, META, GOOG, AMZN, AAPL, MSFT</span>
       </li>
     </ul>
   </div>
