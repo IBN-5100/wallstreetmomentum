@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { Line } from 'react-chartjs-2';
-import Select from 'react-select';
+//import Select from 'react-select';
+import dynamic from 'next/dynamic';
+const Select = dynamic(() => import('react-select'), { ssr: false });
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -32,6 +34,7 @@ export default function DashboardPage({ user, userName, subscription }: any) {
   const [isMarketOpen, setIsMarketOpen] = useState<boolean>(false);
   const [isMarketClose, setIsMarketClose] = useState<boolean>(false);
   const newYorkTimeZone = 'America/New_York';
+  const pacificTimeZone = 'America/Los_Angeles'; // Pacific Timezone
 
   useEffect(() => {
     const updateGraphHeight = () => {
@@ -65,14 +68,13 @@ export default function DashboardPage({ user, userName, subscription }: any) {
     const checkTradingDayAndFetchData = () => {
       const today = new Date();
       const dayOfWeek = today.getDay();
-
+      const lastTradingDay = getPreviousTradingDay();
       if (dayOfWeek === 0 || dayOfWeek === 6) { // Weekend: 0 = Sunday, 6 = Saturday
         console.log('Today is a weekend, fetching previous trading day data.');
-        const lastTradingDay = getPreviousTradingDay();
         fetchGoogleSheetData(lastTradingDay); // Fetch data for the previous trading day
         calculateCountdown(getNextMonday());
       } else {
-        fetchGoogleSheetData(today); // Fetch data for today if it's a trading day
+        fetchGoogleSheetData(lastTradingDay); // Fetch data for today if it's a trading day
       }
     };
 
@@ -92,16 +94,20 @@ export default function DashboardPage({ user, userName, subscription }: any) {
         `https://sheets.googleapis.com/v4/spreadsheets/${historicalSpreadsheetId}/values/${selectedTicker}!A:G?key=${apiKey}`
       );
       if (!historicalRes.ok) {
+        console.warn('Failed to fetch historical Data Status:',  historicalRes.statusText);
         throw new Error(`Failed to fetch historical data: ${historicalRes.statusText}`);
       }
+      console.log('Historical Data Status:',  historicalRes.statusText);
       const historicalData = await historicalRes.json();
 
       const predictedRes = await fetch(
         `https://sheets.googleapis.com/v4/spreadsheets/${predictedSpreadsheetId}/values/${selectedTicker}!A:D?key=${apiKey}`
       );
       if (!predictedRes.ok) {
+        console.warn('Failed to fetch Predicted Data Status:',  predictedRes.statusText);
         throw new Error(`Failed to fetch predicted data: ${predictedRes.statusText}`);
       }
+      console.log('Predicted Data Status:',  predictedRes.statusText);
       const predictedData = await predictedRes.json();
 
       const { todayData, previousDayData } = stitchData(historicalData.values, predictedData.values, date);
@@ -116,19 +122,39 @@ export default function DashboardPage({ user, userName, subscription }: any) {
 
   // Get the previous trading day
   const getPreviousTradingDay = () => {
-    let today = new Date();
-    let dayOfWeek = today.getDay();
-
-    // If it's a weekend, move to Friday
-    if (dayOfWeek === 0) { // Sunday
-      today.setDate(today.getDate() - 2); // Move to Friday
-    } else if (dayOfWeek === 6) { // Saturday
-      today.setDate(today.getDate() - 1); // Move to Friday
-    }
+    const today = new Date();
+    const dayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
+    const now = new Date();
     
-    // Further logic for holidays could be added here if required
+    const marketCloseTime = new Date(today);
+    marketCloseTime.setHours(16, 0, 0, 0); // 4:00 PM Eastern Time
+  
+    // If the market is still open today, adjust to yesterday
+
+    console.log("Day of Week:", dayOfWeek)
+  
+    if (now <= marketCloseTime) {
+      if (dayOfWeek === 0) { // Sunday, move to Friday
+        today.setDate(today.getDate() - 2 ); // Friday
+      } else if (dayOfWeek === 1) { // Monday, move to Friday
+        today.setDate(today.getDate() - 3); // Friday
+      } else {
+        today.setDate(today.getDate() - 1);
+      }
+    } else {
+      if (dayOfWeek === 0) { // Sunday, move to Friday
+        today.setDate(today.getDate() - 2); // Friday
+      } else if (dayOfWeek === 6) { // Saturday, move to Friday
+        today.setDate(today.getDate() - 1); // Friday
+      }
+    }
+
+
+    console.log("Previous Trading Day:", today)
+  
     return today;
   };
+  
 
   // Get the next Monday date if today is a weekend
   const getNextMonday = () => {
@@ -144,38 +170,51 @@ export default function DashboardPage({ user, userName, subscription }: any) {
   const calculateCountdown = (targetTime: Date) => {
     const now = utcToZonedTime(new Date(), newYorkTimeZone);
     const timeDifference = targetTime.getTime() - now.getTime();
-    const days = Math.floor((timeDifference / (1000 * 60 * 60 * 24)));
-    const hours = Math.floor((timeDifference / (1000 * 60 * 60)) % 24);
-    const minutes = Math.floor((timeDifference / (1000 * 60)) % 60);
-    const seconds = Math.floor((timeDifference / 1000) % 60);
-
-    setCountdown(`${days}d ${hours}h ${minutes}m ${seconds}s`);
-    setTimeout(() => calculateCountdown(targetTime), 1000);
-  };
-
-  const checkMarketStatus = () => {
-    const now = new Date();
-
-    const marketOpen = getNextMarketOpen();
-    const marketClose = utcToZonedTime(new Date(), newYorkTimeZone);
-    marketClose.setHours(16, 0, 0, 0); // 4:00 PM Eastern Time
-
-    const marketOpenUtc = zonedTimeToUtc(marketOpen, newYorkTimeZone);
-    const marketCloseUtc = zonedTimeToUtc(marketClose, newYorkTimeZone);
-
-    if (now >= marketOpenUtc && now <= marketCloseUtc) {
-      setIsMarketOpen(true);
-      setIsMarketClose(false);
-      calculateCountdown(marketCloseUtc);
-    } else if (now < marketOpenUtc) {
-      setIsMarketOpen(false);
-      setIsMarketClose(false);
-      calculateCountdown(marketOpenUtc);
+    
+    if (timeDifference > 0) {
+      const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((timeDifference / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((timeDifference / (1000 * 60)) % 60);
+      const seconds = Math.floor((timeDifference / 1000) % 60);
+  
+      setCountdown(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+      setTimeout(() => calculateCountdown(targetTime), 1000);
     } else {
-      setIsMarketOpen(false);
-      setIsMarketClose(true);
+      // Disable countdown and show market status
+      setCountdown('');
     }
   };
+  
+
+  const checkMarketStatus = () => {
+    const now = utcToZonedTime(new Date(), newYorkTimeZone); // Get current time in New York timezone
+    const dayOfWeek = now.getDay(); // 0 = Sunday, 6 = Saturday
+  
+    const marketOpen = new Date(now);
+    marketOpen.setHours(9, 30, 0, 0); // 9:30 AM Eastern Time
+  
+    const marketClose = new Date(now);
+    marketClose.setHours(16, 0, 0, 0); // 4:00 PM Eastern Time
+  
+    // Check if today is a weekend
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      setIsMarketOpen(false);
+      setIsMarketClose(true); // Market is closed on weekends
+      return;
+    }
+  
+    // Check if the current time is within market hours
+    if (now >= marketOpen && now <= marketClose) {
+      setIsMarketOpen(true);  // Market is currently open
+      setIsMarketClose(false);
+      calculateCountdown(marketClose); // Countdown to market close
+    } else {
+      setIsMarketOpen(false);  // Market is closed
+      setIsMarketClose(true);
+      calculateCountdown(marketOpen); // Countdown to next market open
+    }
+  };
+  
 
   const getNextMarketOpen = (): Date => {
     const today = new Date();
@@ -216,8 +255,8 @@ export default function DashboardPage({ user, userName, subscription }: any) {
     const previousDayData: any[] = [];
     const predictedValues = predictedData.slice(1); // Skip header
   
-    const today = new Date();
-    const targetDay = new Date(date);
+    const today = new Date(); // Current date in user's time zone
+    const targetDay = new Date(date); // Date for previous trading day or selected date
   
     for (let i = 0; i < historicalData.length; i++) {
       const [timestamp, price] = historicalData[i];
@@ -233,7 +272,8 @@ export default function DashboardPage({ user, userName, subscription }: any) {
         } else {
           dateInET = parse(timestamp, 'MM/dd/yyyy HH:mm:ss', new Date());
           if (isValid(dateInET)) {
-            dateInET = utcToZonedTime(dateInET, newYorkTimeZone);
+            const dateInUTC = zonedTimeToUtc(dateInET, pacificTimeZone);
+            dateInET = utcToZonedTime(dateInUTC, newYorkTimeZone);
           } else {
             console.warn('Invalid timestamp format:', timestamp);
             continue;
@@ -243,7 +283,7 @@ export default function DashboardPage({ user, userName, subscription }: any) {
   
       const hour = dateInET.getHours();
       const minutes = dateInET.getMinutes();
-      if (hour < 8 || (hour === 8 && minutes < 30) || hour >= 16) { // - 1 hour for prediction algo
+      if (hour < 8 || (hour === 8 && minutes < 30) || hour >= 16) { // Skip times outside trading hours
         continue;
       }
   
@@ -251,38 +291,79 @@ export default function DashboardPage({ user, userName, subscription }: any) {
       if (isNaN(currentPrice)) {
         continue;
       }
+
   
-      const futureHourIndex = i + 12;
-      const futurePrice = futureHourIndex < historicalData.length
-        ? parseFloat(historicalData[futureHourIndex][1])
-        : NaN;
+      // Search for future hour data by finding the next timestamp within 1 hour of the current one
+      const PredictTimeStamp = dateInET.getTime() + 60 * 60 * 1000;
+      let futurePrice = NaN;
+      const target_dateInET = new Date(dateInET.getTime() + 60 * 60 * 1000); // Add 1 hour in milliseconds
+      for (let j = i + 1; j < historicalData.length; j++) {
+        const [futureTimestamp, futurePriceCandidate] = historicalData[j];
+        const futureDateInET = utcToZonedTime(new Date(futureTimestamp), newYorkTimeZone);
   
-      if (predictedValues[Math.floor(i / 12)]) {
-        const [_, predictedHigh, predictedLow] = predictedValues[Math.floor(i / 12)];
-        let currentDateInET = utcToZonedTime(new Date(historicalData[i][0]), newYorkTimeZone);
-        let predictionTime = new Date(currentDateInET.getTime() + 60 * 60 * 1000);
-  
-        const formattedPredictionTime = format(predictionTime, 'yyyy-MM-dd HH:mm:ss', {});
-  
-        const stitchedRow = {
-          timestamp: formattedPredictionTime,
-          price: futurePrice,
-          predictedHigh: parseFloat(predictedHigh) * currentPrice,
-          predictedLow: parseFloat(predictedLow) * currentPrice,
-        };
-  
-        // Compare the date in Eastern Time with the targetDay to determine which dataset to update
-        if (dateInET.getDate() === today.getDate()) {
-          todayData.push(stitchedRow);
-        } else if (dateInET.getDate() === targetDay.getDate()) {
-          previousDayData.push(stitchedRow);
+        // Check if future timestamp is at least 1 hour ahead
+        if (futureDateInET.getTime() >= PredictTimeStamp) {
+          futurePrice = parseFloat(futurePriceCandidate);
+          break; // Exit loop once we find the next valid future price
         }
+      }
+  
+      // **Updated prediction logic**:
+      // Search dynamically for the corresponding predicted value based on the actual timestamp
+      let predictedHigh = NaN;
+      let predictedLow = NaN;
+      for (let k = 0; k < predictedValues.length; k++) {
+        const [predictedTimestamp, high, low] = predictedValues[k];
+        const predictedDate = utcToZonedTime(new Date(predictedTimestamp), newYorkTimeZone);
+        // If the predicted time corresponds to the current time (or is close enough), use this prediction
+        if (Math.abs(predictedDate.getTime() - dateInET.getTime()) < 60 * 60 * 1000) { // Within 1 hour
+          predictedHigh = parseFloat(high);
+          predictedLow = parseFloat(low);
+          break;
+        }
+      }
+  
+      if (isNaN(predictedHigh) || isNaN(predictedLow)) {
+        console.warn('No valid prediction found for current data point:', {
+          timestamp: dateInET.toISOString(),
+        });
+        continue; // Skip if no valid prediction was found
+      }
+  
+      // Create the stitched row
+      const stitchedRow = {
+        timestamp: target_dateInET.toISOString(),
+        price: futurePrice,
+        predictedHigh: predictedHigh * currentPrice,
+        predictedLow: predictedLow * currentPrice,
+      };
+  
+  
+      // Ensure we are comparing full dates (year, month, day)
+      const dateInETString = dateInET.toDateString();
+      const todayString = today.toDateString();
+      const targetDayString = targetDay.toDateString();
+  
+      // Compare the date in Eastern Time with the targetDay to determine which dataset to update
+      if (dateInETString === todayString) {
+        //console.log('Pushing to todayData.');
+        todayData.push(stitchedRow);
+      } else if (dateInETString === targetDayString) {
+        //console.log('Pushing to previousDayData.');
+        previousDayData.push(stitchedRow);
       }
     }
   
+    // Final log of both datasets
+
+    console.log('today:', today);
+    console.log('targetDay:', targetDay);
+  
     return { todayData, previousDayData };
   };
-
+  
+  
+  
   const options = {
     responsive: true,
     plugins: {
