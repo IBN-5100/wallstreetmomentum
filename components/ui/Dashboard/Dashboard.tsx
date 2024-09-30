@@ -124,9 +124,9 @@ export default function DashboardPage({ user, userName, subscription }: any) {
   const getPreviousTradingDay = () => {
     const today = new Date();
     const dayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
-    const now = new Date();
+    const now = utcToZonedTime(new Date(), newYorkTimeZone);;
     
-    const marketCloseTime = new Date(today);
+    const marketCloseTime = utcToZonedTime(new Date(today), newYorkTimeZone);
     marketCloseTime.setHours(16, 0, 0, 0); // 4:00 PM Eastern Time
   
     // If the market is still open today, adjust to yesterday
@@ -134,6 +134,7 @@ export default function DashboardPage({ user, userName, subscription }: any) {
     console.log("Day of Week:", dayOfWeek)
   
     if (now <= marketCloseTime) {
+      console.log("Market Open Time")
       if (dayOfWeek === 0) { // Sunday, move to Friday
         today.setDate(today.getDate() - 2 ); // Friday
       } else if (dayOfWeek === 1) { // Monday, move to Friday
@@ -142,13 +143,13 @@ export default function DashboardPage({ user, userName, subscription }: any) {
         today.setDate(today.getDate() - 1);
       }
     } else {
+      console.log("Market Closed Time")
       if (dayOfWeek === 0) { // Sunday, move to Friday
         today.setDate(today.getDate() - 2); // Friday
       } else if (dayOfWeek === 6) { // Saturday, move to Friday
         today.setDate(today.getDate() - 1); // Friday
       }
     }
-
 
     console.log("Previous Trading Day:", today)
   
@@ -346,10 +347,11 @@ export default function DashboardPage({ user, userName, subscription }: any) {
   
       // Compare the date in Eastern Time with the targetDay to determine which dataset to update
       if (dateInETString === todayString) {
-        //console.log('Pushing to todayData.');
+        console.log('Pushing to todayData.');
         todayData.push(stitchedRow);
-      } else if (dateInETString === targetDayString) {
-        //console.log('Pushing to previousDayData.');
+      }
+      if (dateInETString === targetDayString) {
+        console.log('Pushing to previousDayData.');
         previousDayData.push(stitchedRow);
       }
     }
@@ -555,7 +557,7 @@ export default function DashboardPage({ user, userName, subscription }: any) {
             <div
               className={`w-full max-w-4xl p-4 bg-black rounded shadow`}
             >
-              <h2 className="text-center text-white text-2xl mb-4">Previous Trading Day's Data ({selectedTicker})</h2>
+              <h2 className="text-center text-white text-2xl mb-4">Last Trading Day's Data ({selectedTicker})</h2>
               {previousTradingDayData ? (
                 <Line
                   data={{
