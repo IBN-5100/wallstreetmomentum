@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { Line } from 'react-chartjs-2';
-//import Select from 'react-select';
-import dynamic from 'next/dynamic';
-const Select = dynamic(() => import('react-select'), { ssr: false });
+import Select from 'react-select';
+//import dynamic from 'next/dynamic';
+//const Select = dynamic(() => import('react-select'), { ssr: false });
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -122,9 +122,9 @@ export default function DashboardPage({ user, userName, subscription }: any) {
 
   // Get the previous trading day
   const getPreviousTradingDay = () => {
-    const today = new Date();
+    const today = utcToZonedTime(new Date(), newYorkTimeZone);
     const dayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
-    const now = utcToZonedTime(new Date(), newYorkTimeZone);;
+    const now = utcToZonedTime(new Date(), newYorkTimeZone);
     
     const marketCloseTime = utcToZonedTime(new Date(today), newYorkTimeZone);
     marketCloseTime.setHours(16, 0, 0, 0); // 4:00 PM Eastern Time
