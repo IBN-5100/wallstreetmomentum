@@ -417,7 +417,10 @@ export default function DashboardPage({ user, userName, subscription }: any) {
     { value: 'AAPL', label: 'AAPL' },
     { value: 'AMZN', label: 'AMZN' },
     { value: 'GOOG', label: 'GOOG' },
+    { value: 'META', label: 'META' },
+    { value: 'MSFT', label: 'MSFT' },
     { value: 'NVDA', label: 'NVDA' },
+    { value: 'TSLA', label: 'TSLA' },
     { value: 'RIVN', label: 'RIVN' },
   ];
 
