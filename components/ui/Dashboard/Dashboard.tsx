@@ -513,7 +513,7 @@ export default function DashboardPage({ user, userName, subscription }: any) {
         />
       </div>
 
-      <div className="flex flex-col justify-top items-center min-h-screen space-y-8">
+      <div className="flex flex-col justify-top items-center space-y-8">
         {loading ? (
           <TailSpin height="80" width="80" color="white" ariaLabel="loading" />
         ) : (
@@ -614,7 +614,6 @@ export default function DashboardPage({ user, userName, subscription }: any) {
           </>
         )}
       </div>
-
       <LogoCloud />
       <div>
         <br></br>
