@@ -84,7 +84,12 @@ export default function DashboardPage({ user, userName, subscription }: any) {
 
   // Function to fetch data from Google Sheets for a specific day
   const fetchGoogleSheetData = async (date: Date) => {
-    try {
+    console.warn("Chart temporarily disabled");
+    setLoading(false);
+    return; 
+    /**
+     * 
+     * try {
       const historicalSpreadsheetId = process.env.NEXT_PUBLIC_HIST_SHEET; 
       const predictedSpreadsheetId = process.env.NEXT_PUBLIC_PRED_SHEET;
 
@@ -118,6 +123,7 @@ export default function DashboardPage({ user, userName, subscription }: any) {
     } finally {
       setLoading(false);
     }
+     */
   };
 
   // Get the previous trading day
