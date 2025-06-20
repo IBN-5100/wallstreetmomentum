@@ -1,5 +1,5 @@
 import Dashboard from '@/components/ui/Dashboard/Dashboard';
-import { redirect } from 'next/navigation';
+import ClientRedirectWrapper from '@/components/ui/Dashboard/ClientRedirectWrapper';
 import { createClient } from '@/utils/supabase/server';
 import {
   getUserDetails,
@@ -16,9 +16,12 @@ export default async function Account() {
   ]);
 
   return (
-    <Dashboard
-      user={user}
-      userName={userDetails?.full_name ?? ''}
-      subscription={subscription}/>
+    <ClientRedirectWrapper>
+      <Dashboard
+        user={user}
+        userName={userDetails?.full_name ?? ''}
+        subscription={subscription}
+      />
+    </ClientRedirectWrapper>
   );
 }
