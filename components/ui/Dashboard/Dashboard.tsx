@@ -606,7 +606,7 @@ export default function DashboardPage({ user, userName, subscription }: any) {
     Unfortunately, we no longer offer a free demo as we expand our proprietary tech.
   </p>
   <p className="mt-2 text-md">
-    Please <a href="/pricing" className="underline font-semibold hover:text-pink-300">subscribe</a> or <a href="/contact" className="underline font-semibold hover:text-pink-300">schedule a call</a> to continue.
+    Please <a href="/pricing" className="underline font-semibold hover:text-pink-300">subscribe</a> or <a href="/pricing" className="underline font-semibold hover:text-pink-300">schedule a call</a> to continue.
   </p>
 </div>
 
