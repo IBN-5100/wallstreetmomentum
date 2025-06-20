@@ -1,7 +1,7 @@
 export default function LogoCloud() {
   return (
     <div>
-      <p className="mt-24 text-xs uppercase text-zinc-400 text-center font-bold tracking-[0.3em]">
+      <p className="mt-4 text-xs uppercase text-zinc-400 text-center font-bold tracking-[0.3em]">
         In partnership with
       </p>
       <div className="grid grid-cols-1 place-items-center sm:mt-12 sm:space-y-10  sm:grid-cols-1">
