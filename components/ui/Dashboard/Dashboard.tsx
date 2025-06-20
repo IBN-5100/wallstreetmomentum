@@ -600,15 +600,16 @@ export default function DashboardPage({ user, userName, subscription }: any) {
               )}
             </div>
 
-<div className="w-full max-w-4xl p-6 mt-8 bg-pink-100 border border-pink-300 rounded-lg shadow text-black text-center">
-  <h2 className="text-2xl font-semibold mb-2 text-pink-700">Demo Access Unavailable</h2>
+<div className="w-full max-w-4xl p-6 mt-8 rounded-lg shadow text-white text-center bg-gradient-to-br from-black to-pink-600 border border-pink-500">
+  <h2 className="text-2xl font-semibold mb-2">Demo Access Unavailable</h2>
   <p className="text-md">
     Unfortunately, we no longer offer a free demo as we expand our proprietary tech.
   </p>
   <p className="mt-2 text-md">
-    Please <a href="/signin" className="text-pink-600 underline">sign in</a> or <a href="/contact" className="text-pink-600 underline">schedule a call</a> to continue.
+    Please <a href="/signin" className="underline font-semibold hover:text-pink-300">sign in</a> or <a href="/contact" className="underline font-semibold hover:text-pink-300">schedule a call</a> to continue.
   </p>
 </div>
+
              
           </>
         )}
